@@ -9,7 +9,7 @@ COPY package*.json ./
 
 # Install the app dependencies
 # You can use --production flag if you don't install devDependencies
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Bundle the app source inside the Docker image
 COPY . .
