@@ -1,5 +1,5 @@
 # Build stage
-FROM node:16-slim AS build
+FROM node:20-slim AS build
 
 # Set the working directory
 WORKDIR /app
@@ -20,7 +20,7 @@ RUN npm run build
 # Production stage for a hypothetical Node.js server that serves the production-built resources
 # If you're just building the Electron app and not serving it with Node.js, 
 # you can skip this stage and directly export your build artifacts in the previous stage
-FROM node:16-slim AS production
+FROM node:20-slim AS production
 
 WORKDIR /app
 
