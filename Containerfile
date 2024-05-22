@@ -16,17 +16,5 @@ RUN npm install --force
 
 # Bundle app source
 COPY . .
-RUN npm run build
-
-# Production stage
-FROM nginx:alpine AS production
-
-# Copy the build output to replace the default nginx contents.
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Expose port 80 to the Docker host, so we can access it
-# from the outside.
-EXPOSE 80
-
-# The command to run when the container is started.
-CMD ["nginx", "-g", "daemon off;"]
+RUN npm run dev
+EXPOSE 3000
