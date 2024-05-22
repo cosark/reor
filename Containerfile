@@ -1,15 +1,20 @@
 # Build stage
-FROM node:20-slim AS build
+FROM node:18-slim AS build
 
 # Set the working directory
 WORKDIR /app
 
-# Copy the package.json and package-lock.json (or yarn.lock)
+# Copy the package.json and package-lock.json
 COPY package*.json ./
 
-# Install the app dependencies
-# You can use --production flag if you don't install devDependencies
-RUN npm ci --legacy-peer-deps
+# Install Python, build-essential, and other required system packages
+RUN apt-get update \
+    && apt-get install -y python3 python3-pip python3-setuptools build-essential \
+    && ln -s /usr/bin/python3 /usr/bin/python \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js dependencies (with force to avoid halt on peer dependencies)
+RUN npm install --force
 
 # Bundle the app source inside the Docker image
 COPY . .
@@ -17,24 +22,22 @@ COPY . .
 # Run the build scripts defined in your package.json
 RUN npm run build
 
-# Production stage for a hypothetical Node.js server that serves the production-built resources
-# If you're just building the Electron app and not serving it with Node.js, 
-# you can skip this stage and directly export your build artifacts in the previous stage
-FROM node:20-slim AS production
+# Depending on your production needs, set up the production environment
+# For a Node.js back-end server (if applicable):
+FROM node:18-slim AS production
 
+# Set the working directory
 WORKDIR /app
 
-# Copy built node modules and compiled code from the build stage
-COPY --from=build /app/node_modules ./node_modules
+# Copy built artifacts from the build stage
 COPY --from=build /app/dist ./dist
-
-# Copy any other resources that your app needs at runtime
-# COPY --from=build /app/public ./public
-# COPY --from=build /app/src ./src
-# etc.
+COPY --from=build /app/node_modules ./node_modules
 
 # Your start command or runtime command here
+# When using Electron, this may not be necessary as you'd be packaging the 
+# Electron app instead of running a server.
 CMD ["node", "./dist/server.js"]
 
-# Note that CMD should not be 'npm run dev' in production
-# but rather the command to start your Electron app or associated server
+# If you're not running a server and you just need to package the Electron app,
+# you don't need the production stage. Instead, you'd create the package in the
+# build stage and then copy it out of Docker to your host machine.
